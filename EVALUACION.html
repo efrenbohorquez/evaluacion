@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación de Curso de Maestría</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados para complementar Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6; /* Fondo más suave */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff; /* Fondo blanco para el contenedor */
+            padding: 40px; /* Mayor padding */
+            border-radius: 12px; /* Bordes más redondeados */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+            width: 100%;
+            max-width: 800px; /* Ancho máximo ligeramente mayor */
+            text-align: center;
+        }
+        .question {
+            font-size: 1.8rem; /* Tamaño de fuente mayor para la pregunta */
+            margin-bottom: 30px; /* Mayor espacio debajo de la pregunta */
+            color: #2c3e50; /* Color de texto más oscuro */
+            font-weight: 600; /* Texto de pregunta más negrita */
+        }
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ajuste para botones más grandes */
+            gap: 20px; /* Mayor espacio entre botones */
+            margin-bottom: 30px;
+        }
+        .answer-button {
+            padding: 20px; /* Mayor padding en los botones */
+            border-radius: 10px; /* Bordes redondeados en botones */
+            font-size: 1.2rem; /* Tamaño de fuente mayor en botones */
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease; /* Añadir transición de transformación */
+            border: 1px solid #bdc3c7; /* Borde sutil */
+            text-align: center;
+            color: #34495e; /* Color de texto oscuro para botones */
+            background-color: #ecf0f1; /* Fondo claro por defecto */
+            font-weight: 500;
+        }
+        .answer-button:hover {
+            background-color: #dcdfe4; /* Fondo ligeramente más oscuro al pasar el mouse */
+            transform: translateY(-2px); /* Efecto sutil al pasar el mouse */
+        }
+         .answer-button:active {
+            transform: translateY(0); /* Quitar efecto al hacer click */
+        }
+        .answer-button.correct {
+            background-color: #2ecc71; /* Verde más vibrante */
+            color: white; /* Texto blanco */
+            border-color: #27ae60;
+        }
+        .answer-button.incorrect {
+            background-color: #e74c3c; /* Rojo más vibrante */
+            color: white; /* Texto blanco */
+            border-color: #c0392b;
+        }
+         .answer-button.default {
+             /* Estilo por defecto, ya definido arriba */
+         }
+        .score {
+            font-size: 1.4rem; /* Tamaño de fuente mayor para el puntaje */
+            margin-top: 30px;
+            color: #34495e; /* Color de texto oscuro */
+            font-weight: 600;
+        }
+        .feedback {
+            font-size: 1.3rem; /* Tamaño de fuente mayor para el feedback */
+            margin-top: 20px;
+            min-height: 1.8em; /* Reservar más espacio */
+            font-weight: 600;
+        }
+        .feedback.correct-text {
+            color: #27ae60; /* Verde oscuro para feedback correcto */
+        }
+        .feedback.incorrect-text {
+            color: #c0392b; /* Rojo oscuro para feedback incorrecto */
+        }
+        .next-button {
+            padding: 15px 30px; /* Mayor padding en el botón Siguiente */
+            background-color: #f39c12; /* Naranja más cálido */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem; /* Tamaño de fuente mayor */
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            font-weight: 600;
+        }
+        .next-button:hover {
+            background-color: #e67e22; /* Naranja más oscuro al pasar el mouse */
+            transform: translateY(-2px);
+        }
+         .next-button:active {
+            transform: translateY(0);
+        }
+        .hidden {
+            display: none;
+        }
+         #end-screen h2 {
+             color: #2c3e50; /* Color de texto oscuro para el título final */
+         }
+         #restart-button {
+             background-color: #3498db; /* Azul para el botón de reiniciar */
+             border-color: #2980b9;
+         }
+         #restart-button:hover {
+             background-color: #2980b9; /* Azul oscuro al pasar el mouse */
+         }
+         .results-summary {
+             text-align: left;
+             margin-top: 30px;
+             padding-top: 20px;
+             border-top: 1px solid #eee;
+         }
+         .results-summary h3 {
+             font-size: 1.5rem;
+             color: #2c3e50;
+             margin-bottom: 15px;
+             font-weight: 600;
+         }
+         .results-summary p {
+             margin-bottom: 10px;
+             font-size: 1.1rem;
+             color: #555;
+         }
+         .results-summary .correct-answer {
+             color: #27ae60;
+             font-weight: 500;
+         }
+         .results-summary .incorrect-answer {
+             color: #c0392b;
+             font-weight: 500;
+         }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="game-area">
+            <div id="question" class="question"></div>
+            <div id="answer-buttons" class="answer-grid">
+                </div>
+            <div id="feedback" class="feedback"></div>
+            <button id="next-button" class="next-button hidden">Siguiente Pregunta</button>
+            <div id="score" class="score">Puntaje: 0</div>
+        </div>
+        <div id="end-screen" class="hidden">
+            <h2 class="text-2xl font-bold mb-4">¡Evaluación Completada!</h2> <div id="final-score" class="score mb-4"></div>
+            <div id="results-summary" class="results-summary">
+                <h3>Resumen de Respuestas:</h3>
+                </div>
+            <button id="restart-button" class="next-button">Reiniciar Evaluación</button> </div>
+    </div>
+
+    <script>
+        // Array de preguntas. Contiene las preguntas proporcionadas por el usuario.
+        const questions = [
+            {
+                question: "Según el texto, la Iniciativa de la Franja y la Ruta (BRI) ha incorporado a 140 naciones hasta enero de 2021 y desarrolla varias vertientes. ¿Cómo se describe la Ruta Digital dentro de este megaproyecto desde una perspectiva estratégica?",
+                answers: [
+                    { text: "Principalmente como un medio para exportar productos de manufactura china", correct: false },
+                    { text: "Como un plan maestro detallado para la inversión en TIC a nivel global", correct: false },
+                    { text: "Como una \"caja de herramientas tecnológicas\" que apoya y dinamiza los diversos proyectos de BRI, con relevancia geopolítica en la competencia estratégica con EE. UU.", correct: true },
+                    { text: "Exclusivamente como una forma de expandir las redes 5G de Huawei y ZTE", correct: false }
+                ]
+            },
+            {
+                question: "El texto señala que China está transitando de un modelo \"Made in China\" a uno \"Designed in China\". Desde la perspectiva de la Técnica Geopolítica, ¿cuál es la principal implicación de esta transición en el ámbito digital y tecnológico global?",
+                answers: [
+                    { text: "Reducir los costos de producción de dispositivos electrónicos.", correct: false },
+                    { text: "Aumentar la dependencia de mano de obra extranjera.", correct: false },
+                    { text: "Convertirse en promotor de innovación tecnológica propia, reducir su dependencia de potencias extranjeras y liderar la generación de estándares globales.", correct: true },
+                    { text: "Limitar el acceso de sus empresas a mercados externos.", correct: false }
+                ]
+            },
+            {
+                question: "La rivalidad tecnológica entre China y EE. UU. es un tema central. ¿Cuál es el área de disputa mencionada en el texto que se considera crucial por ser la base para desplegar futuras capacidades como IA, IoT y cloud computing, y que por tanto tiene un alto valor estratégico y geopolítico?",
+                answers: [
+                    { text: "La computación en la nube (cloud computing)", correct: false },
+                    { text: "La inteligencia artificial (IA)", correct: false },
+                    { text: "Las redes 5G, donde empresas chinas como Huawei y ZTE buscan liderazgo", correct: true },
+                    { text: "Los sistemas de pago digital (FinTech)", correct: false }
+                ]
+            },
+            {
+                question: "Más allá de las empresas de telecomunicaciones como Huawei y ZTE, el texto identifica una nueva generación de titanes tecnológicos chinos (BATX: Baidu, Alibaba, Tencent, Xiaomi). ¿Cuál es la función estratégica de estas empresas en la expansión de la Ruta Digital según el texto?",
+                answers: [
+                    { text: "Se enfocan únicamente en el mercado interno chino.", correct: false },
+                    { text: "Son principalmente fabricantes de hardware.", correct: false },
+                    { text: "Actúan como agentes promotores del emprendimiento tecnológico y replican modelos digitales chinos (como comercio electrónico, ciudades inteligentes, FinTech) en países de la Ruta de la Seda.", correct: true },
+                    { text: "Su rol se limita a la minería de datos.", correct: false }
+                ]
+            },
+            {
+                question: "El documento \"Visión y Acciones\" de 2015, una referencia oficial para la Ruta de la Seda de la Información, propuso la construcción de infraestructura digital clave. ¿Cuál era el objetivo geopolítico principal de esta infraestructura, como los cables ópticos transfronterizos y transcontinentales?",
+                answers: [
+                    { text: "Facilitar el espionaje internacional.", correct: false },
+                    { text: "Controlar el flujo de información global.", correct: false },
+                    { text: "Reforzar la conectividad de comunicaciones internacionales y mejorar las transmisiones, expandiendo la influencia china en la infraestructura digital.", correct: true },
+                    { text: "Limitar el acceso a internet en ciertos países.", correct: false }
+                ]
+            },
+            {
+                question: "En la competencia por el control del espacio digital, China ha desarrollado su propio sistema de navegación por satélite. ¿Cómo se llama este sistema y cuál es su implicación estratégica en relación con el sistema GPS de EE. UU.?",
+                answers: [
+                    { text: "Hongyun; busca ofrecer internet de banda ancha global.", correct: false },
+                    { text: "GLONASS; es el sistema ruso y colabora con China.", correct: false },
+                    { text: "New IP; busca reestructurar el protocolo de internet global.", correct: false },
+                    { text: "Beidou; busca competir directamente con el GPS de EE. UU. y expandir su cobertura a países miembros de BRI.", correct: true }
+                ]
+            },
+            {
+                question: "El texto describe dos iniciativas globales contrapuestas en materia de seguridad digital: la estrategia de \"Red Limpia\" de EE. UU. y la \"Iniciativa Global Sobre Seguridad de Datos\" de China. ¿Cómo caracteriza el texto el enfoque de cada una?",
+                answers: [
+                    { text: "Ambas son iniciativas multilaterales de cooperación.", correct: false },
+                    { text: "Ambas son iniciativas confrontacionales para excluir rivales.", correct: false },
+                    { text: "La estrategia de EE. UU. es vista como confrontacional y excluyente (\"antichina\"), mientras que la iniciativa china defiende el multilateralismo y la inclusión.", correct: true },
+                    { text: "La estrategia de EE. UU. se basa en seguridad, mientras que la china se basa en comercio.", correct: false }
+                ]
+            },
+            {
+                question: "El desarrollo de la Ruta Digital se relaciona con la base institucional financiera china, como el BAII y el Fondo de la Ruta de la Seda. ¿Cuál es el objetivo estratégico financiero que apoya la Ruta Digital, incluyendo iniciativas como el sistema CIPS o el yuan digital?",
+                answers: [
+                    { text: "Mejorar únicamente los pagos internos de China.", correct: false },
+                    { text: "Reducir las comisiones bancarias internacionales.", correct: false },
+                    { text: "Fortalecer el uso global de la moneda china (renminbi) y reducir la dependencia del sistema financiero global dominado por el dólar estadounidense y SWIFT.", correct: true },
+                    { text: "Facilitar las remesas de inmigrantes chinos.", correct: false }
+                ]
+            },
+            {
+                question: "Cuba es destacada en el texto por su relevancia en la Ruta de la Seda Digital en América Latina y el Caribe. ¿Cuál es la importancia geopolítica de la integración temprana y profunda de Cuba en esta iniciativa?",
+                answers: [
+                    { text: "Cuba representa el mercado digital más grande de la región.", correct: false },
+                    { text: "Cuba es un centro regional de innovación tecnológica avanzada.", correct: false },
+                    { text: "Cuba fue el primer y único país del continente americano en integrarse a la Ruta de la Seda Digital en 2016, y su inserción permite evadir el bloqueo estadounidense y sirve de potencial punto de apoyo para el avance de BRI en el Gran Caribe.", correct: true },
+                    { text: "La importancia radica únicamente en la exportación de productos cubanos a China.", correct: false }
+                ]
+            },
+            {
+                question: "Además de la integración digital y la cooperación en diversas áreas, Cuba adoptó la norma china de televisión digital. ¿Cuál es la implicación estratégica de esta decisión para Cuba en el contexto de la rivalidad tecnológica global?",
+                answers: [
+                    { text: "Mejorar la calidad de imagen y sonido de la televisión cubana.", correct: false },
+                    { text: "Facilitar la exportación de contenido audiovisual cubano a China.", correct: false },
+                    { text: "Permitió a Cuba insertarse en la dinámica tecnológica china y mantener una dependencia tecnológica casi nula de EE. UU., sirviendo potencialmente como experiencia a compartir en el Caribe.", correct: true },
+                    { text: "Generar ingresos adicionales por licencias tecnológicas.", correct: false }
+                ]
+            }
+        ];
+
+        // Variables del juego
+        let currentQuestionIndex = 0;
+        let score = 0;
+        // Array para almacenar las respuestas del usuario
+        let userAnswers = [];
+
+        // Obtener elementos del DOM
+        const questionElement = document.getElementById('question');
+        const answerButtonsElement = document.getElementById('answer-buttons');
+        const scoreElement = document.getElementById('score');
+        const nextButton = document.getElementById('next-button');
+        const feedbackElement = document.getElementById('feedback');
+        const gameArea = document.getElementById('game-area');
+        const endScreen = document.getElementById('end-screen');
+        const finalScoreElement = document.getElementById('final-score');
+        const restartButton = document.getElementById('restart-button');
+        const resultsSummaryElement = document.getElementById('results-summary');
+
+        // Función para iniciar el juego
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = []; // Limpiar respuestas anteriores
+            scoreElement.textContent = `Puntaje: ${score}`;
+            gameArea.classList.remove('hidden');
+            endScreen.classList.add('hidden');
+            nextButton.classList.add('hidden');
+            feedbackElement.textContent = '';
+            resultsSummaryElement.innerHTML = '<h3>Resumen de Respuestas:</h3>'; // Limpiar resumen anterior
+            showQuestion();
+        }
+
+        // Función para mostrar la pregunta actual
+        function showQuestion() {
+            resetState(); // Limpiar estado anterior
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+
+            // Crear botones para cada respuesta
+            currentQuestion.answers.forEach(answer => {
+                const button = document.createElement('button');
+                button.textContent = answer.text;
+                button.classList.add('answer-button', 'default'); // Clase por defecto
+                if (answer.correct) {
+                    button.dataset.correct = answer.correct; // Marcar la respuesta correcta
+                }
+                button.addEventListener('click', selectAnswer);
+                answerButtonsElement.appendChild(button);
+            });
+        }
+
+        // Función para resetear el estado de los botones y feedback
+        function resetState() {
+            nextButton.classList.add('hidden');
+            feedbackElement.textContent = '';
+            while (answerButtonsElement.firstChild) {
+                answerButtonsElement.removeChild(answerButtonsElement.firstChild);
+            }
+        }
+
+        // Función que se llama al seleccionar una respuesta
+        function selectAnswer(e) {
+            const selectedButton = e.target;
+            const correct = selectedButton.dataset.correct === 'true';
+            const currentQuestion = questions[currentQuestionIndex];
+            const selectedAnswerText = selectedButton.textContent;
+            const correctAnswerText = currentQuestion.answers.find(ans => ans.correct).text;
+
+            // Almacenar la respuesta del usuario
+            userAnswers.push({
+                question: currentQuestion.question,
+                selected: selectedAnswerText,
+                correctAnswer: correctAnswerText,
+                isCorrect: correct
+            });
+
+            // Mostrar si la respuesta es correcta o incorrecta
+            if (correct) {
+                selectedButton.classList.remove('default');
+                selectedButton.classList.add('correct');
+                feedbackElement.textContent = '¡Respuesta Correcta!'; // Feedback ajustado
+                feedbackElement.classList.remove('incorrect-text');
+                feedbackElement.classList.add('correct-text');
+                score++; // Incrementar puntaje si es correcto
+            } else {
+                selectedButton.classList.remove('default');
+                selectedButton.classList.add('incorrect');
+                feedbackElement.textContent = 'Respuesta Incorrecta.'; // Feedback ajustado
+                feedbackElement.classList.remove('correct-text');
+                feedbackElement.classList.add('incorrect-text');
+                // Opcional: mostrar la respuesta correcta
+                Array.from(answerButtonsElement.children).forEach(button => {
+                    if (button.dataset.correct === 'true') {
+                        button.classList.remove('default');
+                        button.classList.add('correct');
+                    }
+                });
+            }
+
+            // Deshabilitar botones después de seleccionar una respuesta
+            Array.from(answerButtonsElement.children).forEach(button => {
+                button.removeEventListener('click', selectAnswer);
+                // button.style.pointerEvents = 'none'; // Otra forma de deshabilitar clicks
+            });
+
+            scoreElement.textContent = `Puntaje: ${score}`;
+            nextButton.classList.remove('hidden'); // Mostrar botón Siguiente
+        }
+
+        // Función para pasar a la siguiente pregunta o terminar el juego
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // Función para terminar el juego
+        function endGame() {
+            gameArea.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            finalScoreElement.textContent = `Tu puntaje final es: ${score} de ${questions.length}`;
+
+            // Mostrar resumen de respuestas
+            const summaryDiv = document.getElementById('results-summary');
+            summaryDiv.innerHTML = '<h3>Resumen de Respuestas:</h3>'; // Limpiar antes de añadir
+            userAnswers.forEach((answer, index) => {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>Pregunta ${index + 1}:</strong> ${answer.question}<br>
+                               Tu respuesta: <span class="${answer.isCorrect ? 'correct-answer' : 'incorrect-answer'}">${answer.selected}</span><br>
+                               Respuesta correcta: <span class="correct-answer">${answer.correctAnswer}</span>`;
+                summaryDiv.appendChild(p);
+            });
+        }
+
+        // Event listeners
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', startGame);
+
+        // Iniciar el juego al cargar la página
+        startGame();
+
+    </script>
+</body>
+</html>
